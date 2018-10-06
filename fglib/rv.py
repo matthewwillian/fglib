@@ -13,6 +13,7 @@ Classes:
 from abc import ABC, abstractmethod, abstractproperty, abstractclassmethod
 
 import numpy as np
+import xarray as xr
 
 
 class ParameterException(Exception):
@@ -43,6 +44,92 @@ class RandomVariable(ABC):
         pass
 
     @abstractmethod
+    def __sub__(self):
+        pass
+
+    @abstractmethod
+    def __mul__(self):
+        pass
+
+    @abstractmethod
+    def __iadd__(self):
+        pass
+
+    @abstractmethod
+    def __isub__(self):
+        pass
+
+    @abstractmethod
+    def __imul__(self):
+        pass
+
+    @abstractmethod
+    def __eq__(self):
+        pass
+
+    @abstractmethod
+    def normalize(self):
+        pass
+
+    @abstractmethod
+    def marginalize(self):
+        pass
+
+    @abstractmethod
+    def maximize(self):
+        pass
+
+    @abstractmethod
+    def argmax(self):
+        pass
+
+    @abstractmethod
+    def log(self):
+        pass
+
+
+class DiscreteImproved(RandomVariable):
+    """Improved class for discrete random variables.class
+
+        All of the hard indexing math is handled by XArray.
+        Calculations are also performed in log space.
+    """
+    def __init__(self, raw_pmf, *args):
+        """Initialize the improved discrete random variable.
+
+        Args:
+            raw_pmf: A Numpy array-like representing the probability mass
+                function. The probability mass function does not need to be
+                normalized.
+            *args: Instances of the class VNode representing the variables of
+                the probability mass function. The number of the positional
+                arguments must match the number of dimensions of the Numpy
+                array.
+
+        Raises:
+            ParameterException: An error occurred initializing with invalid
+                parameters.
+        """
+        log_pmf_array = np.log(np.asarray(raw_pmf, dtype=np.float64))
+
+        if np.ndim(log_pmf_array) != len(args):
+            raise ParameterException('Dimension mismatch.')
+
+        self._log_pmf = xr.DataArray(log_pmf_array, dims=args)
+
+    def unity(cls, *args):
+        return cls(np.ones((1,) * len(args)), *args)
+
+
+    def dim(self):
+        return self._log_pmf.dims()
+
+    def __str__(self):
+        return np.exp(self._log_pmf)
+
+    def __add__(self, other):
+        new_pmf = np.logaddexp()
+
     def __sub__(self):
         pass
 
